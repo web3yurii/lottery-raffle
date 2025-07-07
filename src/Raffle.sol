@@ -25,10 +25,9 @@
 
 pragma solidity 0.8.19;
 
-import {VRFConsumerBaseV2Plus} from
-    "../lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-import {VRFV2PlusClient} from
-    "../lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
 /**
  * @title A sample Raffle contract
@@ -36,11 +35,12 @@ import {VRFV2PlusClient} from
  * @dev Implements chainlink VRF for random number generation
  * @notice This contract will handle the logic for entering a raffle, selecting winners, and managing funds.
  */
-contract Raffle is VRFConsumerBaseV2Plus {
+contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     error Raffle__NotEnoughEth();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
     error Raffle__UnknownRequestId();
+    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 playersCount, uint256 raffleState, uint256 timeStamp);
 
     enum RaffleState {
         OPEN, // 0
@@ -100,14 +100,30 @@ contract Raffle is VRFConsumerBaseV2Plus {
         emit RaffleEntered(msg.sender, msg.value);
     }
 
+    function checkUpkeep(bytes memory /* checkData */ )
+        public
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory /* performData */ )
+    {
+        bool timePassed = (block.timestamp - s_lastTimeStamp) >= i_interval;
+        bool isOpen = s_raffleState == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+        upkeepNeeded = timePassed && isOpen && hasBalance && hasPlayers;
+        return (upkeepNeeded, "");
+    }
+
     // 0. Automatically called by the Chainlink VRF
     // 1. Get a random number
     // 2. Select a winner
     // 3. Transfer the prize to the winner
-    function pickWinner() external {
-        // is enough time passed?
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
-            revert();
+    function performUpkeep(bytes calldata /* performData */ ) external override {
+        (bool upkeepNeeded,) = checkUpkeep("");
+        if (!upkeepNeeded) {
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance, s_players.length, uint256(s_raffleState), block.timestamp
+            );
         }
 
         s_raffleState = RaffleState.CALCULATING_WINNER;
