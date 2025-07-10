@@ -86,6 +86,10 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         s_raffleState = RaffleState.OPEN;
     }
 
+    function getRaffleState() external view returns (RaffleState) {
+        return s_raffleState;
+    }
+
     function enterRaffle() external payable {
         //        require(msg.value >= i_entranceFee, "Not enough ETH sent to enter the raffle");
         //        require(msg.value >= i_entranceFee, NotEnoughEth());
