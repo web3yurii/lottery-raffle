@@ -26,6 +26,7 @@ contract HelperConfig is Script, Constants {
         uint32 callbackGasLimit;
         uint256 subscriptionId;
         address link;
+        address account;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -58,7 +59,8 @@ contract HelperConfig is Script, Constants {
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500000,
             subscriptionId: 0x6d1d65a97bfa402a3c3ab78f77a3afdf66a63d7b156c99ceb9286be418c975a5, // 49354040706122981092865939794089764545635191452611533899700296425503030080933
-            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            account: 0x326794fBB97ed389B2b1F6eF39006CB08ED89046
         });
     }
 
@@ -82,7 +84,8 @@ contract HelperConfig is Script, Constants {
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500000,
             subscriptionId: 0, // This is a mock, so we can set it to any value
-            link: address(link)
+            link: address(link),
+            account: 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38 // default sender on Anvil
         });
 
         return localNetworkConfig;
