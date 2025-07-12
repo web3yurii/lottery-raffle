@@ -79,9 +79,9 @@ contract HelperConfig is Script, Constants {
             entranceFee: 0.01 ether,
             interval: 30 seconds,
             vrfCoordinator: address(vrfCoordinator),
-            gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c,
+            gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500000,
-            subscriptionId: 1, // This is a mock, so we can set it to any value
+            subscriptionId: 0, // This is a mock, so we can set it to any value
             link: address(link)
         });
 
