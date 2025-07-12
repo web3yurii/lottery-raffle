@@ -176,4 +176,35 @@ contract RaffleTest is Test {
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomRequestId, address(raffle));
         // Act / Assert
     }
+
+    function testFulfillRandomWordsPicksWinnerAndResetsRaffle() public raffleEntered {
+        // Arrange
+        uint256 additionalEntranceFee = 3;
+        uint256 startingIndex = 1;
+        address expectedWinner = address(1);
+        for (uint256 i = startingIndex; i < startingIndex + additionalEntranceFee; i++) {
+            address playerAddress = address(uint160(i));
+            hoax(playerAddress, 1 ether);
+            raffle.enterRaffle{value: entranceFee}();
+        }
+        uint256 startingTimestamp = raffle.getLastTimeStamp();
+        uint256 startingBalance = expectedWinner.balance;
+        // Act
+        vm.recordLogs();
+        raffle.performUpkeep("");
+        VmSafe.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 requestId = entries[1].topics[1];
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
+        // Assert
+        address recentWinner = raffle.getRecentWinner();
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        uint256 winnerBalance = recentWinner.balance;
+        uint256 endingTimestamp = raffle.getLastTimeStamp();
+        uint256 prize = entranceFee * (additionalEntranceFee + 1);
+
+        assertEq(recentWinner, expectedWinner);
+        assertEq(uint(raffleState), 0);
+        assertEq(winnerBalance, startingBalance + prize);
+        assertGt(endingTimestamp, startingTimestamp);
+    }
 }

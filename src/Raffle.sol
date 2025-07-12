@@ -45,7 +45,6 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     enum RaffleState {
         OPEN, // 0
         CALCULATING_WINNER // 1
-
     }
 
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -156,6 +155,14 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         return i_entranceFee;
     }
 
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
+    }
+
+    function getRecentWinner() public view returns (address) {
+        return s_recentWinner;
+    }
+
     // CEI: Checks, Effects, Interactions
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
         // Checks
@@ -168,6 +175,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
         s_raffleState = RaffleState.OPEN;
         s_players = new address payable[](0); // Reset the players array
+        s_lastTimeStamp = block.timestamp;
         emit WinnerPicked(s_recentWinner);
 
         // Interactions
